@@ -24,7 +24,7 @@ final class DiffableDataSource: UICollectionViewDiffableDataSource<AnyHashable, 
 
     // Avoid retaining the collection view, we know it is owned and kept alive by the driver.
     // Thus, unowned is safe here.
-    private unowned let _collectionView: UICollectionView
+    private weak var _collectionView: UICollectionView?
 
     private let _diffOnBackgroundQueue: Bool
 
@@ -164,7 +164,8 @@ final class DiffableDataSource: UICollectionViewDiffableDataSource<AnyHashable, 
     }
 
     private func _visibleItemIdentifiers() -> Set<UniqueIdentifier> {
-        let visibleIndexPaths = self._collectionView.indexPathsForVisibleItems
+        guard let collectionView = self._collectionView else { return Set() }
+        let visibleIndexPaths = collectionView.indexPathsForVisibleItems
         // These are the current, existing (that is, "source") item identifiers.
         let visibleSourceItemIdentifiers = visibleIndexPaths.compactMap { self.itemIdentifier(for: $0) }
         // This is ok, because in terms of needing to "reload" items,
@@ -255,9 +256,10 @@ final class DiffableDataSource: UICollectionViewDiffableDataSource<AnyHashable, 
         // Limitations in the APIs require this.
         // Unfortunately, we cannot do the same thing as `_visibleItemIdentifiers()` above,
         // because we cannot query directly for supplementary view items.
+        guard let collectionView = self._collectionView else { return Set() }
         let allKinds = destination.allSupplementaryViewKinds()
         let visibleIndexPaths = allKinds.flatMap {
-            self._collectionView.indexPathsForVisibleSupplementaryElements(ofKind: $0)
+            collectionView.indexPathsForVisibleSupplementaryElements(ofKind: $0)
         }
         let visibleSections = visibleIndexPaths.map { $0.section }
 
@@ -272,8 +274,9 @@ final class DiffableDataSource: UICollectionViewDiffableDataSource<AnyHashable, 
     }
 
     private func _reconfigureSupplementaryView(model: AnySupplementaryViewModel, item: Int, section: Int) {
+        guard let collectionView = self._collectionView else { return }
         let indexPath = IndexPath(item: item, section: section)
-        if let view = self._collectionView.supplementaryView(forElementKind: model._kind, at: indexPath) {
+        if let view = collectionView.supplementaryView(forElementKind: model._kind, at: indexPath) {
             model.configure(view: view)
         }
     }
