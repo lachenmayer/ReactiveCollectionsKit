@@ -129,7 +129,7 @@ public struct AnyCellViewModel: CellViewModel {
     // MARK: ViewRegistrationProvider
 
     /// :nodoc:
-    public var registration: ViewRegistration { self._registration }
+    nonisolated public var registration: ViewRegistration { self._registration }
 
     // MARK: CellViewModel
 

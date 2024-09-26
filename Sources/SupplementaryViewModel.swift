@@ -46,11 +46,11 @@ extension SupplementaryViewModel {
 
 extension SupplementaryViewModel {
     /// The view class for this view model.
-    public var viewClass: AnyClass { ViewType.self }
+    nonisolated public var viewClass: AnyClass { ViewType.self }
 
     /// A default reuse identifier for cell registration.
     /// Returns the name of the class implementing the `CellViewModel` protocol.
-    public var reuseIdentifier: String { "\(Self.self)" }
+    nonisolated public var reuseIdentifier: String { "\(Self.self)" }
 
     /// Returns a type-erased version of this view model.
     public func eraseToAnyViewModel() -> AnySupplementaryViewModel {
@@ -62,7 +62,7 @@ extension SupplementaryViewModel {
 
     // MARK: Internal
 
-    var _kind: SupplementaryViewKind {
+    nonisolated var _kind: SupplementaryViewKind {
         precondition(
             self.registration.viewType.isSupplementary,
             "Inconsistency error. Expected supplementary view registration"
@@ -95,7 +95,7 @@ public struct AnySupplementaryViewModel: SupplementaryViewModel {
     // MARK: ViewRegistrationProvider
 
     /// :nodoc:
-    public var registration: ViewRegistration { self._registration }
+    nonisolated public var registration: ViewRegistration { self._registration }
 
     // MARK: SupplementaryViewModel
 

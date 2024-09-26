@@ -188,7 +188,7 @@ public struct CollectionViewModel: Hashable, DiffableViewModel {
         return self.supplementaryViewModel(ofKind: kind, at: indexPath)
     }
 
-    func allRegistrations() -> Set<ViewRegistration> {
+    nonisolated func allRegistrations() -> Set<ViewRegistration> {
         var all = Set<ViewRegistration>()
         self.sections.forEach {
             all.formUnion($0.allRegistrations())
@@ -220,12 +220,12 @@ public struct CollectionViewModel: Hashable, DiffableViewModel {
         return all
     }
 
-    func allSectionsByIdentifier() -> [UniqueIdentifier: SectionViewModel] {
+    nonisolated func allSectionsByIdentifier() -> [UniqueIdentifier: SectionViewModel] {
         let tuples = self.sections.map { ($0.id, $0) }
         return Dictionary(uniqueKeysWithValues: tuples)
     }
 
-    func allCellsByIdentifier() -> [UniqueIdentifier: AnyCellViewModel] {
+    nonisolated func allCellsByIdentifier() -> [UniqueIdentifier: AnyCellViewModel] {
         let allCells = self.flatMap(\.cells)
         let tuples = allCells.map { ($0.id, $0) }
         return Dictionary(uniqueKeysWithValues: tuples)
@@ -253,52 +253,38 @@ public struct CollectionViewModel: Hashable, DiffableViewModel {
 extension CollectionViewModel: Collection, RandomAccessCollection {
     /// :nodoc:
     nonisolated public var count: Int {
-        MainActor.assumeIsolated {
-            self.sections.count
-        }
+        self.sections.count
     }
 
     /// :nodoc:
     nonisolated public var isEmpty: Bool {
-        MainActor.assumeIsolated {
-            self.sections.isEmpty
-        }
+        self.sections.isEmpty
     }
 
     /// :nodoc:
     nonisolated public var startIndex: Int {
-        MainActor.assumeIsolated {
-            self.sections.startIndex
-        }
+        self.sections.startIndex
     }
 
     /// :nodoc:
     nonisolated public var endIndex: Int {
-        MainActor.assumeIsolated {
-            self.sections.endIndex
-        }
+        self.sections.endIndex
     }
 
     /// :nodoc:
     nonisolated public subscript(position: Int) -> SectionViewModel {
-        MainActor.assumeIsolated {
-            self.sections[position]
-        }
+        self.sections[position]
     }
 
     /// :nodoc:
     nonisolated public func index(after pos: Int) -> Int {
-        MainActor.assumeIsolated {
-            self.sections.index(after: pos)
-        }
+        self.sections.index(after: pos)
     }
 }
 
 extension CollectionViewModel: CustomDebugStringConvertible {
     /// :nodoc:
     nonisolated public var debugDescription: String {
-        MainActor.assumeIsolated {
-            collectionDebugDescription(self)
-        }
+        collectionDebugDescription(self)
     }
 }

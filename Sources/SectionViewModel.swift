@@ -36,7 +36,7 @@ public struct SectionViewModel: DiffableViewModel {
     public let supplementaryViews: [AnySupplementaryViewModel]
 
     /// Returns `true` if the section has supplementary views, `false` otherwise.
-    public var hasSupplementaryViews: Bool {
+    nonisolated public var hasSupplementaryViews: Bool {
         self.header != nil
         || self.footer != nil
         || self.supplementaryViews.isNotEmpty
@@ -224,26 +224,26 @@ public struct SectionViewModel: DiffableViewModel {
 
     // MARK: Internal
 
-    func cellRegistrations() -> Set<ViewRegistration> {
+    nonisolated func cellRegistrations() -> Set<ViewRegistration> {
         Set(self.cells.map(\.registration))
     }
 
-    func headerFooterRegistrations() -> Set<ViewRegistration> {
+    nonisolated func headerFooterRegistrations() -> Set<ViewRegistration> {
         Set([self.header, self.footer].compactMap { $0?.registration })
     }
 
-    func supplementaryViewRegistrations() -> Set<ViewRegistration> {
+    nonisolated func supplementaryViewRegistrations() -> Set<ViewRegistration> {
         Set(self.supplementaryViews.map(\.registration))
     }
 
-    func allRegistrations() -> Set<ViewRegistration> {
+    nonisolated func allRegistrations() -> Set<ViewRegistration> {
         let cells = self.cellRegistrations()
         let headerFooter = self.headerFooterRegistrations()
         let views = self.supplementaryViewRegistrations()
         return cells.union(views).union(headerFooter)
     }
 
-    func allSupplementaryViewsByIdentifier() -> [UniqueIdentifier: AnySupplementaryViewModel] {
+    nonisolated func allSupplementaryViewsByIdentifier() -> [UniqueIdentifier: AnySupplementaryViewModel] {
         let tuples = self.supplementaryViews.map { ($0.id, $0) }
         return Dictionary(uniqueKeysWithValues: tuples)
     }
@@ -254,52 +254,38 @@ public struct SectionViewModel: DiffableViewModel {
 extension SectionViewModel: Collection, RandomAccessCollection {
     /// :nodoc:
     nonisolated public var count: Int {
-        MainActor.assumeIsolated {
-            self.cells.count
-        }
+        self.cells.count
     }
 
     /// :nodoc:
     nonisolated public var isEmpty: Bool {
-        MainActor.assumeIsolated {
-            self.cells.isEmpty
-        }
+        self.cells.isEmpty
     }
 
     /// :nodoc:
     nonisolated public var startIndex: Int {
-        MainActor.assumeIsolated {
-            self.cells.startIndex
-        }
+        self.cells.startIndex
     }
 
     /// :nodoc:
     nonisolated public var endIndex: Int {
-        MainActor.assumeIsolated {
-            self.cells.endIndex
-        }
+        self.cells.endIndex
     }
 
     /// :nodoc:
     nonisolated public subscript(position: Int) -> AnyCellViewModel {
-        MainActor.assumeIsolated {
-            self.cells[position]
-        }
+        self.cells[position]
     }
 
     /// :nodoc:
     nonisolated public func index(after pos: Int) -> Int {
-        MainActor.assumeIsolated {
-            self.cells.index(after: pos)
-        }
+        self.cells.index(after: pos)
     }
 }
 
 extension SectionViewModel: CustomDebugStringConvertible {
     /// :nodoc:
     nonisolated public var debugDescription: String {
-        MainActor.assumeIsolated {
-            sectionDebugDescription(self)
-        }
+        sectionDebugDescription(self)
     }
 }

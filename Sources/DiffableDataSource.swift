@@ -28,7 +28,7 @@ final class DiffableDataSource: UICollectionViewDiffableDataSource<AnyHashable, 
 
     private let _diffOnBackgroundQueue: Bool
 
-    private lazy var _diffingQueue = DispatchQueue(
+    nonisolated private lazy var _diffingQueue = DispatchQueue(
         label: "com.jessesquires.ReactiveCollectionsKit",
         qos: .userInteractive,
         autoreleaseFrequency: .workItem
@@ -70,74 +70,78 @@ final class DiffableDataSource: UICollectionViewDiffableDataSource<AnyHashable, 
         animated: Bool,
         completion: SnapshotCompletion?
     ) {
-        // Build initial destination snapshot, then make adjustments below.
-        // This takes care of newly added items and newly added sections,
-        // which will trigger the whole dequeue and configure flow for each.
-        var destinationSnapshot = DiffableSnapshot(viewModel: destination)
+        Task.detached(priority: .userInitiated) {
+            // Build initial destination snapshot, then make adjustments below.
+            // This takes care of newly added items and newly added sections,
+            // which will trigger the whole dequeue and configure flow for each.
+            var destinationSnapshot = DiffableSnapshot(viewModel: destination)
 
-        // Apply item reconfigures, then supplementary view reconfigures.
-        // Note: "reconfigure" is a lighter weight, more efficient "reload".
-        //
-        // Unfortunately headers, footers, and other supplementary views
-        // do not get properly reconfigured or reloaded if they display dynamic data.
-        // This is a shortcoming in UIKit. The APIs we need to do this do not exist.
-        // Ideally, `DiffableDataSource` would offer the same APIs for supplementary views
-        // as it does for items and sections.
-        //
-        // Generally speaking, hard-reloading an entire section is the only way to get
-        // headers, footers, and other supplementary views to reload/reconfigure.
-        // That sucks. Luckily, we can do better.
-        //
-        // Below is a 2-step process that is necessary to preserve collection view animations
-        // and prevent UIKit data source internal inconsistency exceptions.
-
-        // Find and perform item (cell) updates first.
-        // Add the item reconfigure updates to the snapshot.
-        let itemsToReconfigure = self._findItemsToReconfigure(from: source, to: destination)
-        destinationSnapshot.reconfigureItems(itemsToReconfigure)
-
-        // Apply the snapshot with item reconfigure updates.
-        self._applyDiffSnapshot(destinationSnapshot, animated: animated) { [weak self] in
-
-            // Once the snapshot with item reconfigures is applied,
-            // we need to find and apply supplementary view reconfigures, if needed.
+            // Apply item reconfigures, then supplementary view reconfigures.
+            // Note: "reconfigure" is a lighter weight, more efficient "reload".
             //
-            // This is necessary to update all headers, footers, and supplementary views.
-            // Per notes above, supplementary views do not get reloaded / reconfigured
-            // automatically by `DiffableDataSource` when they change.
+            // Unfortunately headers, footers, and other supplementary views
+            // do not get properly reconfigured or reloaded if they display dynamic data.
+            // This is a shortcoming in UIKit. The APIs we need to do this do not exist.
+            // Ideally, `DiffableDataSource` would offer the same APIs for supplementary views
+            // as it does for items and sections.
             //
-            // To trigger updates on supplementary views with the existing APIs,
-            // the entire section must be reloaded. Yes, that sucks. We don't want to do that.
-            // That causes all items in the section to be hard-reloaded, too.
-            // Aside from the performance impact, doing that results in an ugly UI "flash"
-            // for all item cells in the collection. Gross.
+            // Generally speaking, hard-reloading an entire section is the only way to get
+            // headers, footers, and other supplementary views to reload/reconfigure.
+            // That sucks. Luckily, we can do better.
             //
-            // However, we can actually do much better than a hard reload!
-            // Instead of reloading the entire section, we can find and compare
-            // the supplementary views and manually reconfigure them if they changed.
-            //
-            // NOTE: this only matters if supplementary views are not static.
-            // That is, if they reflect data in the data source.
-            //
-            // For example, a header with a fixed title (e.g. "My Items") will NOT need to be reloaded.
-            // However, a header that displays changing data WILL need to be reloaded.
-            // (e.g. "My 10 Items")
+            // Below is a 2-step process that is necessary to preserve collection view animations
+            // and prevent UIKit data source internal inconsistency exceptions.
 
-            // Check all the supplementary views and reconfigure them, if needed.
-            self?._reconfigureSupplementaryViewsIfNeeded(from: source, to: destination)
+            // Find and perform item (cell) updates first.
+            // Add the item reconfigure updates to the snapshot.
+            let itemsToReconfigure = await self._findItemsToReconfigure(from: source, to: destination)
+            destinationSnapshot.reconfigureItems(itemsToReconfigure)
 
-            // Finally, we're done and can call completion.
-            completion?()
+            // Apply the snapshot with item reconfigure updates.
+            await self._applyDiffSnapshot(destinationSnapshot, animated: animated) { [weak self] in
+
+                // Once the snapshot with item reconfigures is applied,
+                // we need to find and apply supplementary view reconfigures, if needed.
+                //
+                // This is necessary to update all headers, footers, and supplementary views.
+                // Per notes above, supplementary views do not get reloaded / reconfigured
+                // automatically by `DiffableDataSource` when they change.
+                //
+                // To trigger updates on supplementary views with the existing APIs,
+                // the entire section must be reloaded. Yes, that sucks. We don't want to do that.
+                // That causes all items in the section to be hard-reloaded, too.
+                // Aside from the performance impact, doing that results in an ugly UI "flash"
+                // for all item cells in the collection. Gross.
+                //
+                // However, we can actually do much better than a hard reload!
+                // Instead of reloading the entire section, we can find and compare
+                // the supplementary views and manually reconfigure them if they changed.
+                //
+                // NOTE: this only matters if supplementary views are not static.
+                // That is, if they reflect data in the data source.
+                //
+                // For example, a header with a fixed title (e.g. "My Items") will NOT need to be reloaded.
+                // However, a header that displays changing data WILL need to be reloaded.
+                // (e.g. "My 10 Items")
+
+                // Check all the supplementary views and reconfigure them, if needed.
+                Task.detached(priority: .userInitiated) {
+                    await self?._reconfigureSupplementaryViewsIfNeeded(from: source, to: destination)
+
+                    // Finally, we're done and can call completion.
+                    await completion?()
+                }
+            }
         }
     }
 
-    private func _findItemsToReconfigure(
+    nonisolated private func _findItemsToReconfigure(
         from source: CollectionViewModel,
         to destination: CollectionViewModel
-    ) -> [UniqueIdentifier] {
+    ) async -> [UniqueIdentifier] {
         let allSourceCells = source.allCellsByIdentifier()
         let allDestinationCells = destination.allCellsByIdentifier()
-        let visibleItemIdentifiers = self._visibleItemIdentifiers()
+        let visibleItemIdentifiers = await self._visibleItemIdentifiers()
 
         var itemsToReconfigure = [UniqueIdentifier]()
 
@@ -174,13 +178,13 @@ final class DiffableDataSource: UICollectionViewDiffableDataSource<AnyHashable, 
         return Set(visibleSourceItemIdentifiers)
     }
 
-    private func _reconfigureSupplementaryViewsIfNeeded(
+    nonisolated private func _reconfigureSupplementaryViewsIfNeeded(
         from source: CollectionViewModel,
         to destination: CollectionViewModel
-    ) {
+    ) async {
         let allSourceSections = source.allSectionsByIdentifier()
 
-        let visibleSectionIds = self._visibleSectionIdentifiersFrom(destination: destination)
+        let visibleSectionIds = await self._visibleSectionIdentifiersFrom(destination: destination)
 
         for sectionIndex in 0..<destination.sections.count {
             let destinationSection = destination.sections[sectionIndex]
@@ -208,7 +212,7 @@ final class DiffableDataSource: UICollectionViewDiffableDataSource<AnyHashable, 
             if let destinationHeader = destinationSection.header,
                let sourceHeader = sourceSection.header,
                destinationHeader != sourceHeader {
-                self._reconfigureSupplementaryView(
+                await self._reconfigureSupplementaryView(
                     model: destinationHeader,
                     item: 0,
                     section: sectionIndex
@@ -219,7 +223,7 @@ final class DiffableDataSource: UICollectionViewDiffableDataSource<AnyHashable, 
             if let destinationFooter = destinationSection.footer,
                let sourceFooter = sourceSection.footer,
                destinationFooter != sourceFooter {
-                self._reconfigureSupplementaryView(
+                await self._reconfigureSupplementaryView(
                     model: destinationFooter,
                     item: 0,
                     section: sectionIndex
@@ -240,7 +244,7 @@ final class DiffableDataSource: UICollectionViewDiffableDataSource<AnyHashable, 
 
                 // Check and reconfigure supplementary view.
                 if destinationView != sourceView {
-                    self._reconfigureSupplementaryView(
+                    await self._reconfigureSupplementaryView(
                         model: destinationView,
                         item: viewIndex,
                         section: sectionIndex
