@@ -71,7 +71,12 @@ public struct CollectionViewModel: Hashable, DiffableViewModel {
     /// - Parameter id: The identifier for the cell.
     /// - Returns: The cell, if it exists.
     public func cellViewModel(for id: UniqueIdentifier) -> AnyCellViewModel? {
-        self.flatMap(\.cells).first { $0.id == id }
+        for section in self.sections {
+          for cell in section.cells {
+              if cell.id == id { return cell }
+          }
+        }
+        return nil
     }
 
     /// Returns the cell at the specified index path.
@@ -97,7 +102,12 @@ public struct CollectionViewModel: Hashable, DiffableViewModel {
     /// - Parameter id: The identifier for the supplementary view.
     /// - Returns: The supplementary view, if it exists.
     public func supplementaryViewModel(for id: UniqueIdentifier) -> AnySupplementaryViewModel? {
-        self.flatMap(\.supplementaryViews).first { $0.id == id }
+        for section in self.sections {
+            for view in section.supplementaryViews {
+                if view.id == id { return view }
+            }
+        }
+        return nil
     }
 
     /// Returns the supplementary view for the specified kind and index path.
