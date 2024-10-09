@@ -31,9 +31,12 @@ public final class CollectionViewDriver: NSObject {
 
     /// The collection view model.
     @Published public private(set) var viewModel: CollectionViewModel
-    
-    /// The scroll view delegate to forward.
+
+    /// A scroll view delegate object to receive forwarded events.
     public weak var scrollViewDelegate: UIScrollViewDelegate?
+
+    /// A flow layout delegate object to receive forwarded events.
+    public weak var flowLayoutDelegate: UICollectionViewDelegateFlowLayout?
 
     private let _emptyViewProvider: EmptyViewProvider?
 
@@ -51,7 +54,7 @@ public final class CollectionViewDriver: NSObject {
     // MARK: Init
 
     /// Initializes a new `CollectionViewDriver`.
-    ///  
+    ///
     /// - Parameters:
     ///   - view: The collection view.
     ///   - viewModel: The collection view model.
@@ -94,19 +97,19 @@ public final class CollectionViewDriver: NSObject {
             view: view,
             diffOnBackgroundQueue: options.diffOnBackgroundQueue,
             cellProvider: { [unowned self] view, indexPath, itemIdentifier in
-            self._cellProvider(
-                collectionView: view,
-                indexPath: indexPath,
-                identifier: itemIdentifier
-            )
-        },
+                self._cellProvider(
+                    collectionView: view,
+                    indexPath: indexPath,
+                    identifier: itemIdentifier
+                )
+            },
             supplementaryViewProvider: { [unowned self] view, elementKind, indexPath in
-            self._supplementaryViewProvider(
-                collectionView: view,
-                elementKind: elementKind,
-                indexPath: indexPath
-            )
-        })
+                self._supplementaryViewProvider(
+                    collectionView: view,
+                    elementKind: elementKind,
+                    indexPath: indexPath
+                )
+            })
 
         self.view.dataSource = self._dataSource
         self.view.delegate = self
@@ -286,15 +289,33 @@ public final class CollectionViewDriver: NSObject {
     }
 }
 
-// MARK: UICollectionViewDelegate
+// MARK: - UICollectionViewDelegate
 
 extension CollectionViewDriver: UICollectionViewDelegate {
     // MARK: Managing the selected cells
 
     /// :nodoc:
     public func collectionView(_ collectionView: UICollectionView,
+                               shouldSelectItemAt indexPath: IndexPath) -> Bool {
+        self.viewModel.cellViewModel(at: indexPath).shouldSelect
+    }
+
+    /// :nodoc:
+    public func collectionView(_ collectionView: UICollectionView,
                                didSelectItemAt indexPath: IndexPath) {
         self.viewModel.cellViewModel(at: indexPath).didSelect(with: self._cellEventCoordinator)
+    }
+
+    /// :nodoc:
+    public func collectionView(_ collectionView: UICollectionView,
+                               shouldDeselectItemAt indexPath: IndexPath) -> Bool {
+        self.viewModel.cellViewModel(at: indexPath).shouldDeselect
+    }
+
+    /// :nodoc:
+    public func collectionView(_ collectionView: UICollectionView,
+                               didDeselectItemAt indexPath: IndexPath) {
+        self.viewModel.cellViewModel(at: indexPath).didDeselect(with: self._cellEventCoordinator)
     }
 
     // MARK: Managing cell highlighting
@@ -359,10 +380,10 @@ extension CollectionViewDriver: UICollectionViewDelegate {
     }
 }
 
-// MARK: UIScrollViewDelegate
+// MARK: - UIScrollViewDelegate
 
 extension CollectionViewDriver: UIScrollViewDelegate {
-    // MARK: Managing offset and zoom scale changes
+    // MARK: Responding to scrolling and dragging
 
     /// :nodoc:
     public func scrollViewDidScroll(_ scrollView: UIScrollView) {
@@ -370,84 +391,189 @@ extension CollectionViewDriver: UIScrollViewDelegate {
     }
 
     /// :nodoc:
-    public func scrollViewDidZoom(_ scrollView: UIScrollView) {
-        self.scrollViewDelegate?.scrollViewDidZoom?(scrollView)
-    }
-    
-    // MARK: Tracking dragging
-    
-    /// :nodoc:
     public func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
         self.scrollViewDelegate?.scrollViewWillBeginDragging?(scrollView)
     }
-    
+
     /// :nodoc:
-    public func scrollViewWillEndDragging(_ scrollView: UIScrollView,
-                                          withVelocity velocity: CGPoint,
-                                          targetContentOffset: UnsafeMutablePointer<CGPoint>) {
-        self.scrollViewDelegate?.scrollViewWillEndDragging?(scrollView, withVelocity: velocity, targetContentOffset: targetContentOffset)
+    public func scrollViewWillEndDragging(
+        _ scrollView: UIScrollView,
+        withVelocity velocity: CGPoint,
+        targetContentOffset: UnsafeMutablePointer<CGPoint>
+    ) {
+        self.scrollViewDelegate?.scrollViewWillEndDragging?(
+            scrollView,
+            withVelocity: velocity,
+            targetContentOffset: targetContentOffset
+        )
     }
-    
+
     /// :nodoc:
     public func scrollViewDidEndDragging(_ scrollView: UIScrollView,
                                          willDecelerate decelerate: Bool) {
         self.scrollViewDelegate?.scrollViewDidEndDragging?(scrollView, willDecelerate: decelerate)
     }
-    
-    // MARK: Tracking deceleration and scrolling animation
-    
+
+    /// :nodoc:
+    public func scrollViewShouldScrollToTop(_ scrollView: UIScrollView) -> Bool {
+        self.scrollViewDelegate?.scrollViewShouldScrollToTop?(scrollView) ?? true
+    }
+
+    /// :nodoc:
+    public func scrollViewDidScrollToTop(_ scrollView: UIScrollView) {
+        self.scrollViewDelegate?.scrollViewDidScrollToTop?(scrollView)
+    }
+
     /// :nodoc:
     public func scrollViewWillBeginDecelerating(_ scrollView: UIScrollView) {
-        self.scrollViewDelegate?.scrollViewWillBeginDragging?(scrollView)
+        self.scrollViewDelegate?.scrollViewWillBeginDecelerating?(scrollView)
     }
-    
+
     /// :nodoc:
     public func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
         self.scrollViewDelegate?.scrollViewDidEndDecelerating?(scrollView)
     }
-    
-    /// :nodoc:
-    public func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
-        self.scrollViewDelegate?.scrollViewDidEndScrollingAnimation?(scrollView)
-    }
-    
-    // MARK: Managing and tracking zooming more granularly
-    
+
+    // MARK: Managing zooming
+
     /// :nodoc:
     public func viewForZooming(in scrollView: UIScrollView) -> UIView? {
         self.scrollViewDelegate?.viewForZooming?(in: scrollView)
     }
-    
+
     /// :nodoc:
-    public func scrollViewWillBeginZooming(_ scrollView: UIScrollView,
-                                           with view: UIView?) {
+    public func scrollViewWillBeginZooming(_ scrollView: UIScrollView, with view: UIView?) {
         self.scrollViewDelegate?.scrollViewWillBeginZooming?(scrollView, with: view)
     }
-    
+
     /// :nodoc:
     public func scrollViewDidEndZooming(_ scrollView: UIScrollView,
                                         with view: UIView?,
                                         atScale scale: CGFloat) {
         self.scrollViewDelegate?.scrollViewDidEndZooming?(scrollView, with: view, atScale: scale)
     }
-    
-    // MARK: Managing if should scroll to top and tracking if done so
-    
+
     /// :nodoc:
-    public func scrollViewShouldScrollToTop(_ scrollView: UIScrollView) -> Bool {
-        self.scrollViewDelegate?.scrollViewShouldScrollToTop?(scrollView) ?? true
+    public func scrollViewDidZoom(_ scrollView: UIScrollView) {
+        self.scrollViewDelegate?.scrollViewDidZoom?(scrollView)
     }
-    
+
+    // MARK: Responding to scrolling animations
+
     /// :nodoc:
-    public func scrollViewDidScrollToTop(_ scrollView: UIScrollView) {
-        self.scrollViewDelegate?.scrollViewDidScrollToTop?(scrollView)
+    public func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
+        self.scrollViewDelegate?.scrollViewDidEndScrollingAnimation?(scrollView)
     }
-    
-    
-    // MARK: Tracking adjusted content insets on scroll view
-    
+
+    // MARK: Responding to inset changes
+
     /// :nodoc:
     public func scrollViewDidChangeAdjustedContentInset(_ scrollView: UIScrollView) {
         self.scrollViewDelegate?.scrollViewDidChangeAdjustedContentInset?(scrollView)
+    }
+}
+
+// MARK: - UICollectionViewDelegateFlowLayout
+
+extension CollectionViewDriver: UICollectionViewDelegateFlowLayout {
+
+    private var flowLayout: UICollectionViewFlowLayout? {
+        self.view.collectionViewLayout as? UICollectionViewFlowLayout
+    }
+
+    // MARK: Getting the size of items
+
+    /// :nodoc:
+    public func collectionView(
+        _ collectionView: UICollectionView,
+        layout collectionViewLayout: UICollectionViewLayout,
+        sizeForItemAt indexPath: IndexPath
+    ) -> CGSize {
+        self.flowLayoutDelegate?.collectionView?(
+            collectionView,
+            layout: collectionViewLayout,
+            sizeForItemAt: indexPath
+        )
+        ?? self.flowLayout?.itemSize
+        ?? .zero
+    }
+
+    // MARK: Getting the section spacing
+
+    /// :nodoc:
+    public func collectionView(
+        _ collectionView: UICollectionView,
+        layout collectionViewLayout: UICollectionViewLayout,
+        insetForSectionAt section: Int
+    ) -> UIEdgeInsets {
+        self.flowLayoutDelegate?.collectionView?(
+            collectionView,
+            layout: collectionViewLayout,
+            insetForSectionAt: section
+        )
+        ?? self.flowLayout?.sectionInset
+        ?? .zero
+    }
+
+    /// :nodoc:
+    public func collectionView(
+        _ collectionView: UICollectionView,
+        layout collectionViewLayout: UICollectionViewLayout,
+        minimumLineSpacingForSectionAt section: Int
+    ) -> CGFloat {
+        self.flowLayoutDelegate?.collectionView?(
+            collectionView,
+            layout: collectionViewLayout,
+            minimumLineSpacingForSectionAt: section
+        )
+        ?? self.flowLayout?.minimumLineSpacing
+        ?? .zero
+    }
+
+    /// :nodoc:
+    public func collectionView(
+        _ collectionView: UICollectionView,
+        layout collectionViewLayout: UICollectionViewLayout,
+        minimumInteritemSpacingForSectionAt section: Int
+    ) -> CGFloat {
+        self.flowLayoutDelegate?.collectionView?(
+            collectionView,
+            layout: collectionViewLayout,
+            minimumInteritemSpacingForSectionAt: section
+        )
+        ?? self.flowLayout?.minimumInteritemSpacing
+        ?? .zero
+    }
+
+    // MARK: Getting the header and footer sizes
+
+    /// :nodoc:
+    public func collectionView(
+        _ collectionView: UICollectionView,
+        layout collectionViewLayout: UICollectionViewLayout,
+        referenceSizeForHeaderInSection section: Int
+    ) -> CGSize {
+        self.flowLayoutDelegate?.collectionView?(
+            collectionView,
+            layout: collectionViewLayout,
+            referenceSizeForHeaderInSection: section
+        )
+        ?? self.flowLayout?.headerReferenceSize
+        ?? .zero
+    }
+
+    /// :nodoc:
+    public func collectionView(
+        _ collectionView: UICollectionView,
+        layout collectionViewLayout: UICollectionViewLayout,
+        referenceSizeForFooterInSection section: Int
+    ) -> CGSize {
+        self.flowLayoutDelegate?.collectionView?(
+            collectionView,
+            layout: collectionViewLayout,
+            referenceSizeForFooterInSection: section
+        )
+        ?? self.flowLayout?.footerReferenceSize
+        ?? .zero
     }
 }
