@@ -304,10 +304,10 @@ public final class CollectionViewDriver: NSObject {
         collectionView: UICollectionView,
         indexPath: IndexPath,
         identifier: UniqueIdentifier
-    ) -> UICollectionViewCell {
+    ) -> UICollectionViewCell? {
         let cell = self.viewModel.cellViewModel(for: identifier)
-        precondition(cell != nil, "Inconsistent state. Cell with identifier \(identifier) does not exist.")
-        return cell!.dequeueAndConfigureCellFor(collectionView: collectionView, at: indexPath)
+        assert(cell != nil, "Inconsistent state. Cell with identifier \(identifier) does not exist. Index path: \(indexPath)")
+        return cell?.dequeueAndConfigureCellFor(collectionView: collectionView, at: indexPath)
     }
 
     private func _supplementaryViewProvider(
