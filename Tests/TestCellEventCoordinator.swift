@@ -36,13 +36,12 @@ final class TestCellEventCoordinator: UnitTestCase, @unchecked Sendable {
         let coordinator = FakeCellEventCoordinator()
         coordinator.expectationDidSelect = self.expectation()
 
-        let driver = await CollectionViewDriver(
+        let driver = CollectionViewDriver(
             view: self.collectionView,
-            viewModel: model,
             options: .test(),
             cellEventCoordinator: coordinator
         )
-
+        await driver.update(viewModel: model)
         let indexPath = IndexPath(item: 0, section: 0)
         driver.collectionView(self.collectionView, didSelectItemAt: indexPath)
 
@@ -62,13 +61,12 @@ final class TestCellEventCoordinator: UnitTestCase, @unchecked Sendable {
         let coordinator = FakeCellEventCoordinator()
         coordinator.expectationDidDeselect = self.expectation()
 
-        let driver = await CollectionViewDriver(
+        let driver = CollectionViewDriver(
             view: self.collectionView,
-            viewModel: model,
             options: .test(),
             cellEventCoordinator: coordinator
         )
-
+        await driver.update(viewModel: model)
         let indexPath = IndexPath(item: 0, section: 0)
         driver.collectionView(self.collectionView, didDeselectItemAt: indexPath)
 

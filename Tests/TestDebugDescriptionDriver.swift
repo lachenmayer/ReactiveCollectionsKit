@@ -42,10 +42,10 @@ final class TestDebugDescriptionDriver: XCTestCase {
             numSections: 0,
             numCells: 0
         )
-        let driver = await CollectionViewDriver(
-            view: viewController.collectionView,
-            viewModel: viewModel
+        let driver = CollectionViewDriver(
+            view: viewController.collectionView
         )
+        await driver.update(viewModel: viewModel)
 
         let expected =
             """
@@ -84,10 +84,10 @@ final class TestDebugDescriptionDriver: XCTestCase {
             includeFooter: true,
             includeSupplementaryViews: true
         )
-        let driver = await CollectionViewDriver(
-            view: viewController.collectionView,
-            viewModel: viewModel
+        let driver = CollectionViewDriver(
+            view: viewController.collectionView
         )
+        await driver.update(viewModel: viewModel)
 
         let expected =
             """
@@ -141,14 +141,14 @@ final class TestDebugDescriptionDriver: XCTestCase {
         }
         let cellEventCoordinator = FakeCellEventCoordinator()
         let flowLayoutDelegate = FakeFlowLayoutDelegate()
-        let driver = await CollectionViewDriver(
+        let driver = CollectionViewDriver(
             view: viewController.collectionView,
-            viewModel: viewModel,
             emptyViewProvider: emptyViewProvider,
             cellEventCoordinator: cellEventCoordinator
         )
         driver.scrollViewDelegate = flowLayoutDelegate
         driver.flowLayoutDelegate = flowLayoutDelegate
+        await driver.update(viewModel: viewModel)
 
         let expected =
             """

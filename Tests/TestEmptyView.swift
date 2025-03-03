@@ -35,10 +35,13 @@ final class TestEmptyView: UnitTestCase, @unchecked Sendable {
         }
 
         let viewController = FakeCollectionViewController()
-        let driver = await CollectionViewDriver(
+        let driver = CollectionViewDriver(
             view: viewController.collectionView,
             emptyViewProvider: provider
         )
+      
+        // FIXME: Should the view display the empty view before we update?
+        await driver.update(viewModel: .empty)
 
         XCTAssertTrue(driver.viewModel.isEmpty)
 

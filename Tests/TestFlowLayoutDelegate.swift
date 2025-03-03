@@ -20,11 +20,11 @@ final class TestFlowLayoutDelegate: UnitTestCase, @unchecked Sendable {
     @MainActor
     func test_forwardsEvents_to_flowLayoutDelegate() async {
         let model = self.fakeCollectionViewModel()
-        let driver = await CollectionViewDriver(
+        let driver = CollectionViewDriver(
             view: self.collectionView,
-            viewModel: model,
             options: .test()
         )
+        await driver.update(viewModel: model)
 
         let flowLayoutDelegate = FakeFlowLayoutDelegate()
         driver.flowLayoutDelegate = flowLayoutDelegate
@@ -56,11 +56,11 @@ final class TestFlowLayoutDelegate: UnitTestCase, @unchecked Sendable {
     @MainActor
     func test_delegateMethods_returnLayoutProperties_whenNoDelegateIsSet() async {
         let model = self.fakeCollectionViewModel()
-        let driver = await CollectionViewDriver(
+        let driver = CollectionViewDriver(
             view: self.collectionView,
-            viewModel: model,
             options: .test()
         )
+        await driver.update(viewModel: model)
 
         self.layout.itemSize = CGSize(width: 100, height: 100)
         self.layout.sectionInset = UIEdgeInsets(top: 20, left: 20, bottom: 20, right: 20)

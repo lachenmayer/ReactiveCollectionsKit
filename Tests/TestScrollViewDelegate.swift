@@ -20,11 +20,11 @@ final class TestScrollViewDelegate: UnitTestCase, @unchecked Sendable {
     @MainActor
     func test_forwardsEvents_to_scrollViewDelegate() async {
         let model = self.fakeCollectionViewModel()
-        let driver = await CollectionViewDriver(
+        let driver = CollectionViewDriver(
             view: self.collectionView,
-            viewModel: model,
             options: .test()
         )
+        await driver.update(viewModel: model)
 
         let scrollViewDelegate = FakeScrollViewDelegate()
         driver.scrollViewDelegate = scrollViewDelegate

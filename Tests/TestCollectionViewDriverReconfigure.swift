@@ -34,7 +34,8 @@ final class TestCollectionViewDriverReconfigure: UnitTestCase, @unchecked Sendab
         let model = CollectionViewModel(id: "id", sections: [section1, section2, section3])
 
         let viewController = FakeCollectionViewController()
-        let driver = await CollectionViewDriver(view: viewController.collectionView, viewModel: model)
+        let driver = CollectionViewDriver(view: viewController.collectionView)
+        await driver.update(viewModel: model)
         self.simulateAppearance(viewController: viewController)
         self.waitForExpectations()
 

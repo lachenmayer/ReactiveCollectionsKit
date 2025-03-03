@@ -22,11 +22,11 @@ final class TestCollectionViewDriver: UnitTestCase, @unchecked Sendable {
         let sections = Int.random(in: 5...10)
         let cells = Int.random(in: 5...15)
         let model = self.fakeCollectionViewModel(numSections: sections, numCells: cells)
-        let driver = await CollectionViewDriver(
+        let driver = CollectionViewDriver(
             view: self.collectionView,
-            viewModel: model,
             options: .test()
         )
+        await driver.update(viewModel: model)
 
         XCTAssertEqual(driver.numberOfSections, sections)
 
@@ -39,7 +39,7 @@ final class TestCollectionViewDriver: UnitTestCase, @unchecked Sendable {
 
     @MainActor
     func test_numberOfSections_isEmpty() async {
-        let driver = await CollectionViewDriver(
+        let driver = CollectionViewDriver(
             view: self.collectionView,
             options: .test()
         )
@@ -54,11 +54,11 @@ final class TestCollectionViewDriver: UnitTestCase, @unchecked Sendable {
         let sections = 2
         let cells = 5
         let model = self.fakeCollectionViewModel(numSections: sections, numCells: cells, expectationFields: [.didSelect, .didDeselect])
-        let driver = await CollectionViewDriver(
+        let driver = CollectionViewDriver(
             view: self.collectionView,
-            viewModel: model,
             options: .test()
         )
+        await driver.update(viewModel: model)
 
         for section in 0..<sections {
             for cell in 0..<cells {
@@ -80,11 +80,11 @@ final class TestCollectionViewDriver: UnitTestCase, @unchecked Sendable {
         let section = SectionViewModel(id: "section", cells: [cell1, cell2])
         let collection = CollectionViewModel(id: "collection", sections: [section])
 
-        let driver = await CollectionViewDriver(
+        let driver = CollectionViewDriver(
             view: self.collectionView,
-            viewModel: collection,
             options: .test()
         )
+        await driver.update(viewModel: collection)
 
         for (section, sectionViewModel) in collection.sections.enumerated() {
             for (item, cellViewModel) in sectionViewModel.cells.enumerated() {
@@ -108,11 +108,11 @@ final class TestCollectionViewDriver: UnitTestCase, @unchecked Sendable {
         let section = SectionViewModel(id: "section", cells: [cell1, cell2])
         let collection = CollectionViewModel(id: "collection", sections: [section])
 
-        let driver = await CollectionViewDriver(
+        let driver = CollectionViewDriver(
             view: self.collectionView,
-            viewModel: collection,
             options: .test()
         )
+        await driver.update(viewModel: collection)
 
         let highlight1 = driver.collectionView(self.collectionView, shouldHighlightItemAt: .init(item: 0, section: 0))
         XCTAssertEqual(highlight1, cell1.shouldHighlight)
@@ -131,11 +131,11 @@ final class TestCollectionViewDriver: UnitTestCase, @unchecked Sendable {
         let section = SectionViewModel(id: "section", cells: [cell1, cell2])
         let collection = CollectionViewModel(id: "collection", sections: [section])
 
-        let driver = await CollectionViewDriver(
+        let driver = CollectionViewDriver(
             view: self.collectionView,
-            viewModel: collection,
             options: .test()
         )
+        await driver.update(viewModel: collection)
 
         let menu1 = driver.collectionView(
             self.collectionView,
@@ -164,11 +164,11 @@ final class TestCollectionViewDriver: UnitTestCase, @unchecked Sendable {
             numCells: cells,
             expectationFields: [.willDisplay, .didEndDisplaying]
         )
-        let driver = await CollectionViewDriver(
+        let driver = CollectionViewDriver(
             view: self.collectionView,
-            viewModel: model,
             options: .test()
         )
+        await driver.update(viewModel: model)
 
         for section in 0..<sections {
             for item in 0..<cells {
@@ -197,11 +197,11 @@ final class TestCollectionViewDriver: UnitTestCase, @unchecked Sendable {
             includeSupplementaryViews: true,
             expectationFields: [.willDisplay, .didEndDisplaying]
         )
-        let driver = await CollectionViewDriver(
+        let driver = CollectionViewDriver(
             view: self.collectionView,
-            viewModel: model,
             options: .test()
         )
+        await driver.update(viewModel: model)
 
         for section in 0..<sections {
             for item in 0..<cells {
@@ -235,11 +235,11 @@ final class TestCollectionViewDriver: UnitTestCase, @unchecked Sendable {
             numCells: cells,
             expectationFields: [.didHighlight, .didUnhighlight]
         )
-        let driver = await CollectionViewDriver(
+        let driver = CollectionViewDriver(
             view: self.collectionView,
-            viewModel: model,
             options: .test()
         )
+        await driver.update(viewModel: model)
 
         for section in 0..<sections {
             for item in 0..<cells {
@@ -310,11 +310,11 @@ final class TestCollectionViewDriver: UnitTestCase, @unchecked Sendable {
         viewController.collectionView.dequeueCellExpectation = self.expectation(name: "dequeue_cell")
         viewController.collectionView.dequeueCellExpectation?.expectedFulfillmentCount = sections * cells
 
-        let driver = await CollectionViewDriver(
+        let driver = CollectionViewDriver(
             view: viewController.collectionView,
-            viewModel: model,
             options: .test()
         )
+        await driver.update(viewModel: model)
         self.simulateAppearance(viewController: viewController)
 
         self.waitForExpectations()
@@ -330,7 +330,7 @@ final class TestCollectionViewDriver: UnitTestCase, @unchecked Sendable {
             animated: false
         )
 
-        let driver = await CollectionViewDriver(view: viewController.collectionView)
+        let driver = CollectionViewDriver(view: viewController.collectionView)
 
         let sections = 1
         let cells = 3
@@ -404,11 +404,11 @@ final class TestCollectionViewDriver: UnitTestCase, @unchecked Sendable {
             UICollectionViewCompositionalLayout.fakeLayout(useNibViews: true),
             animated: false
         )
-        let driver = await CollectionViewDriver(
+        let driver = CollectionViewDriver(
             view: viewController.collectionView,
-            viewModel: model,
             options: .test()
         )
+        await driver.update(viewModel: model)
         self.simulateAppearance(viewController: viewController)
 
         self.waitForExpectations()

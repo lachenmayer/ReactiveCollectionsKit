@@ -81,13 +81,12 @@ public final class CollectionViewDriver: NSObject {
     /// for the entire lifetime of the driver.
     public init(
         view: UICollectionView,
-        viewModel: CollectionViewModel = .empty,
         options: CollectionViewDriverOptions = .init(),
         emptyViewProvider: EmptyViewProvider? = nil,
         cellEventCoordinator: CellEventCoordinator? = nil
-    ) async {
+    ) {
         self.view = view
-        self.viewModel = viewModel
+        self.viewModel = .empty
         self.options = options
         self._emptyViewProvider = emptyViewProvider
         self._cellEventCoordinator = cellEventCoordinator
@@ -126,7 +125,6 @@ public final class CollectionViewDriver: NSObject {
 
         self.view.dataSource = self._dataSource
         self.view.delegate = self
-        await self._updateViewModel(from: .empty, to: viewModel, animated: false)
     }
 
     // MARK: State Information
