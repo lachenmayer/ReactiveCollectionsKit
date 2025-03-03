@@ -35,14 +35,14 @@ final class TestDebugDescriptionDriver: XCTestCase {
     """
 
     @MainActor
-    func test_empty() throws {
+    func test_empty() async throws {
         let viewController = FakeCollectionViewController()
         let viewModel = self.fakeCollectionViewModel(
             id: "viewModel_1",
             numSections: 0,
             numCells: 0
         )
-        let driver = CollectionViewDriver(
+        let driver = await CollectionViewDriver(
             view: viewController.collectionView,
             viewModel: viewModel
         )
@@ -74,7 +74,7 @@ final class TestDebugDescriptionDriver: XCTestCase {
     }
 
     @MainActor
-    func test_viewModel() throws {
+    func test_viewModel() async throws {
         let viewController = FakeCollectionViewController()
         let viewModel = self.fakeCollectionViewModel(
             id: "viewModel_2",
@@ -84,7 +84,7 @@ final class TestDebugDescriptionDriver: XCTestCase {
             includeFooter: true,
             includeSupplementaryViews: true
         )
-        let driver = CollectionViewDriver(
+        let driver = await CollectionViewDriver(
             view: viewController.collectionView,
             viewModel: viewModel
         )
@@ -129,7 +129,7 @@ final class TestDebugDescriptionDriver: XCTestCase {
     }
 
     @MainActor
-    func test_delegate() throws {
+    func test_delegate() async throws {
         let viewController = FakeCollectionViewController()
         let viewModel = self.fakeCollectionViewModel(
             id: "viewModel_3",
@@ -141,7 +141,7 @@ final class TestDebugDescriptionDriver: XCTestCase {
         }
         let cellEventCoordinator = FakeCellEventCoordinator()
         let flowLayoutDelegate = FakeFlowLayoutDelegate()
-        let driver = CollectionViewDriver(
+        let driver = await CollectionViewDriver(
             view: viewController.collectionView,
             viewModel: viewModel,
             emptyViewProvider: emptyViewProvider,

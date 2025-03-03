@@ -18,11 +18,11 @@ import XCTest
 final class TestCollectionViewDriver: UnitTestCase, @unchecked Sendable {
 
     @MainActor
-    func test_numberOfSections_numberOfItems() {
+    func test_numberOfSections_numberOfItems() async {
         let sections = Int.random(in: 5...10)
         let cells = Int.random(in: 5...15)
         let model = self.fakeCollectionViewModel(numSections: sections, numCells: cells)
-        let driver = CollectionViewDriver(
+        let driver = await CollectionViewDriver(
             view: self.collectionView,
             viewModel: model,
             options: .test()
@@ -38,8 +38,8 @@ final class TestCollectionViewDriver: UnitTestCase, @unchecked Sendable {
     }
 
     @MainActor
-    func test_numberOfSections_isEmpty() {
-        let driver = CollectionViewDriver(
+    func test_numberOfSections_isEmpty() async {
+        let driver = await CollectionViewDriver(
             view: self.collectionView,
             options: .test()
         )
@@ -50,11 +50,11 @@ final class TestCollectionViewDriver: UnitTestCase, @unchecked Sendable {
     }
 
     @MainActor
-    func test_delegate_didSelect_didDeselect_calls_cellViewModel() {
+    func test_delegate_didSelect_didDeselect_calls_cellViewModel() async {
         let sections = 2
         let cells = 5
         let model = self.fakeCollectionViewModel(numSections: sections, numCells: cells, expectationFields: [.didSelect, .didDeselect])
-        let driver = CollectionViewDriver(
+        let driver = await CollectionViewDriver(
             view: self.collectionView,
             viewModel: model,
             options: .test()
@@ -74,13 +74,13 @@ final class TestCollectionViewDriver: UnitTestCase, @unchecked Sendable {
     }
 
     @MainActor
-    func test_delegate_shouldSelect_shouldDeselect_calls_cellViewModel() {
+    func test_delegate_shouldSelect_shouldDeselect_calls_cellViewModel() async {
         let cell1 = FakeTextCellViewModel(shouldSelect: true, shouldDeselect: true)
         let cell2 = FakeTextCellViewModel(shouldSelect: false, shouldDeselect: false)
         let section = SectionViewModel(id: "section", cells: [cell1, cell2])
         let collection = CollectionViewModel(id: "collection", sections: [section])
 
-        let driver = CollectionViewDriver(
+        let driver = await CollectionViewDriver(
             view: self.collectionView,
             viewModel: collection,
             options: .test()
@@ -102,13 +102,13 @@ final class TestCollectionViewDriver: UnitTestCase, @unchecked Sendable {
     }
 
     @MainActor
-    func test_delegate_shouldHighlight_calls_cellViewModel() {
+    func test_delegate_shouldHighlight_calls_cellViewModel() async {
         let cell1 = FakeTextCellViewModel(shouldHighlight: true)
         let cell2 = FakeTextCellViewModel(shouldHighlight: false)
         let section = SectionViewModel(id: "section", cells: [cell1, cell2])
         let collection = CollectionViewModel(id: "collection", sections: [section])
 
-        let driver = CollectionViewDriver(
+        let driver = await CollectionViewDriver(
             view: self.collectionView,
             viewModel: collection,
             options: .test()
@@ -124,14 +124,14 @@ final class TestCollectionViewDriver: UnitTestCase, @unchecked Sendable {
     }
 
     @MainActor
-    func test_delegate_contextMenuConfigurationForItemAt_calls_cellViewModel() {
+    func test_delegate_contextMenuConfigurationForItemAt_calls_cellViewModel() async {
         let contextMenu = UIContextMenuConfiguration()
         let cell1 = FakeTextCellViewModel(contextMenuConfiguration: contextMenu)
         let cell2 = FakeTextCellViewModel(contextMenuConfiguration: nil)
         let section = SectionViewModel(id: "section", cells: [cell1, cell2])
         let collection = CollectionViewModel(id: "collection", sections: [section])
 
-        let driver = CollectionViewDriver(
+        let driver = await CollectionViewDriver(
             view: self.collectionView,
             viewModel: collection,
             options: .test()
@@ -155,7 +155,7 @@ final class TestCollectionViewDriver: UnitTestCase, @unchecked Sendable {
     }
 
     @MainActor
-    func test_delegate_willDisplay_didEndDisplaying_calls_cellViewModel() {
+    func test_delegate_willDisplay_didEndDisplaying_calls_cellViewModel() async {
         let cell = FakeCollectionCell()
         let sections = 2
         let cells = 5
@@ -164,7 +164,7 @@ final class TestCollectionViewDriver: UnitTestCase, @unchecked Sendable {
             numCells: cells,
             expectationFields: [.willDisplay, .didEndDisplaying]
         )
-        let driver = CollectionViewDriver(
+        let driver = await CollectionViewDriver(
             view: self.collectionView,
             viewModel: model,
             options: .test()
@@ -184,7 +184,7 @@ final class TestCollectionViewDriver: UnitTestCase, @unchecked Sendable {
     }
 
     @MainActor
-    func test_delegate_willDisplay_didEndDisplaying_calls_supplementaryViewModel() {
+    func test_delegate_willDisplay_didEndDisplaying_calls_supplementaryViewModel() async {
         let cell = FakeCollectionCell()
         let view = FakeSupplementaryView()
         let sections = 2
@@ -197,7 +197,7 @@ final class TestCollectionViewDriver: UnitTestCase, @unchecked Sendable {
             includeSupplementaryViews: true,
             expectationFields: [.willDisplay, .didEndDisplaying]
         )
-        let driver = CollectionViewDriver(
+        let driver = await CollectionViewDriver(
             view: self.collectionView,
             viewModel: model,
             options: .test()
@@ -227,7 +227,7 @@ final class TestCollectionViewDriver: UnitTestCase, @unchecked Sendable {
     }
 
     @MainActor
-    func test_delegate_didHighlight_didUnhighlight_calls_cellViewModel() {
+    func test_delegate_didHighlight_didUnhighlight_calls_cellViewModel() async {
         let sections = 2
         let cells = 5
         let model = self.fakeCollectionViewModel(
@@ -235,7 +235,7 @@ final class TestCollectionViewDriver: UnitTestCase, @unchecked Sendable {
             numCells: cells,
             expectationFields: [.didHighlight, .didUnhighlight]
         )
-        let driver = CollectionViewDriver(
+        let driver = await CollectionViewDriver(
             view: self.collectionView,
             viewModel: model,
             options: .test()
@@ -257,7 +257,7 @@ final class TestCollectionViewDriver: UnitTestCase, @unchecked Sendable {
     @MainActor
     func test_dataSource_cellForItemAt_calls_cellViewModel_configure() async {
         let viewController = FakeCollectionViewController()
-        let driver = CollectionViewDriver(view: viewController.collectionView)
+        let driver = await CollectionViewDriver(view: viewController.collectionView)
 
         let sections = 2
         let cells = 5
@@ -289,7 +289,7 @@ final class TestCollectionViewDriver: UnitTestCase, @unchecked Sendable {
     }
 
     @MainActor
-    func test_dataSource_cellForItemAt_calls_cellViewModel_configure_usingNibs() {
+    func test_dataSource_cellForItemAt_calls_cellViewModel_configure_usingNibs() async {
         let sections = 2
         let cells = 5
         let model = self.fakeCollectionViewModel(
@@ -310,7 +310,7 @@ final class TestCollectionViewDriver: UnitTestCase, @unchecked Sendable {
         viewController.collectionView.dequeueCellExpectation = self.expectation(name: "dequeue_cell")
         viewController.collectionView.dequeueCellExpectation?.expectedFulfillmentCount = sections * cells
 
-        let driver = CollectionViewDriver(
+        let driver = await CollectionViewDriver(
             view: viewController.collectionView,
             viewModel: model,
             options: .test()
@@ -330,7 +330,7 @@ final class TestCollectionViewDriver: UnitTestCase, @unchecked Sendable {
             animated: false
         )
 
-        let driver = CollectionViewDriver(view: viewController.collectionView)
+        let driver = await CollectionViewDriver(view: viewController.collectionView)
 
         let sections = 1
         let cells = 3
@@ -370,7 +370,7 @@ final class TestCollectionViewDriver: UnitTestCase, @unchecked Sendable {
     }
 
     @MainActor
-    func test_dataSource_supplementaryViewAt_calls_supplementaryViewModel_configure_usingNibs() {
+    func test_dataSource_supplementaryViewAt_calls_supplementaryViewModel_configure_usingNibs() async {
         let count = 3
         let cells = (1...count).map { _ in FakeNumberCellViewModel() }
 
@@ -404,7 +404,7 @@ final class TestCollectionViewDriver: UnitTestCase, @unchecked Sendable {
             UICollectionViewCompositionalLayout.fakeLayout(useNibViews: true),
             animated: false
         )
-        let driver = CollectionViewDriver(
+        let driver = await CollectionViewDriver(
             view: viewController.collectionView,
             viewModel: model,
             options: .test()
@@ -416,51 +416,4 @@ final class TestCollectionViewDriver: UnitTestCase, @unchecked Sendable {
         self.keepDriverAlive(driver)
     }
 
-    @MainActor
-    func test_update_callsCompletion_withDefaultOptions() {
-        let driver = CollectionViewDriver(view: self.collectionView)
-
-        let expectation = self.expectation()
-
-        let newModel = self.fakeCollectionViewModel()
-        driver.update(viewModel: newModel, animated: true) { _ in
-            expectation.fulfillAndLog()
-        }
-
-        self.waitForExpectations()
-    }
-
-    @MainActor
-    func test_update_callsCompletion_withBackgroundDiffing() {
-        let driver = CollectionViewDriver(
-            view: self.collectionView,
-            options: .init(diffOnBackgroundQueue: true)
-        )
-
-        let expectation = self.expectation()
-
-        let newModel = self.fakeCollectionViewModel()
-        driver.update(viewModel: newModel, animated: true) { _ in
-            expectation.fulfillAndLog()
-        }
-
-        self.waitForExpectations()
-    }
-
-    @MainActor
-    func test_update_callsCompletion_withReloadOnReplace() {
-        let driver = CollectionViewDriver(
-            view: self.collectionView,
-            options: .init(reloadDataOnReplacingViewModel: true)
-        )
-
-        let expectation = self.expectation()
-
-        let newModel = self.fakeCollectionViewModel()
-        driver.update(viewModel: newModel, animated: true) { _ in
-            expectation.fulfillAndLog()
-        }
-
-        self.waitForExpectations()
-    }
 }

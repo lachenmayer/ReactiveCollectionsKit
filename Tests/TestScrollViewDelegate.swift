@@ -18,9 +18,9 @@ import XCTest
 final class TestScrollViewDelegate: UnitTestCase, @unchecked Sendable {
 
     @MainActor
-    func test_forwardsEvents_to_scrollViewDelegate() {
+    func test_forwardsEvents_to_scrollViewDelegate() async {
         let model = self.fakeCollectionViewModel()
-        let driver = CollectionViewDriver(
+        let driver = await CollectionViewDriver(
             view: self.collectionView,
             viewModel: model,
             options: .test()

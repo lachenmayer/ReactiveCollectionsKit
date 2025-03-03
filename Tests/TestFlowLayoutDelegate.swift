@@ -18,9 +18,9 @@ import XCTest
 final class TestFlowLayoutDelegate: UnitTestCase, @unchecked Sendable {
 
     @MainActor
-    func test_forwardsEvents_to_flowLayoutDelegate() {
+    func test_forwardsEvents_to_flowLayoutDelegate() async {
         let model = self.fakeCollectionViewModel()
-        let driver = CollectionViewDriver(
+        let driver = await CollectionViewDriver(
             view: self.collectionView,
             viewModel: model,
             options: .test()
@@ -54,9 +54,9 @@ final class TestFlowLayoutDelegate: UnitTestCase, @unchecked Sendable {
     }
 
     @MainActor
-    func test_delegateMethods_returnLayoutProperties_whenNoDelegateIsSet() {
+    func test_delegateMethods_returnLayoutProperties_whenNoDelegateIsSet() async {
         let model = self.fakeCollectionViewModel()
-        let driver = CollectionViewDriver(
+        let driver = await CollectionViewDriver(
             view: self.collectionView,
             viewModel: model,
             options: .test()

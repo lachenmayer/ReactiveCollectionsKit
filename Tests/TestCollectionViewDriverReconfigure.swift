@@ -34,7 +34,7 @@ final class TestCollectionViewDriverReconfigure: UnitTestCase, @unchecked Sendab
         let model = CollectionViewModel(id: "id", sections: [section1, section2, section3])
 
         let viewController = FakeCollectionViewController()
-        let driver = CollectionViewDriver(view: viewController.collectionView, viewModel: model)
+        let driver = await CollectionViewDriver(view: viewController.collectionView, viewModel: model)
         self.simulateAppearance(viewController: viewController)
         self.waitForExpectations()
 
@@ -50,14 +50,14 @@ final class TestCollectionViewDriverReconfigure: UnitTestCase, @unchecked Sendab
     }
 
     @MainActor
-    func test_reconfigure_header_footer() {
+    func test_reconfigure_header_footer() async {
         let viewController = FakeCollectionViewController()
         viewController.collectionView.setCollectionViewLayout(
             UICollectionViewCompositionalLayout.fakeLayout(addSupplementaryViews: false),
             animated: false
         )
 
-        let driver = CollectionViewDriver(view: viewController.collectionView, options: .test())
+        let driver = await CollectionViewDriver(view: viewController.collectionView, options: .test())
 
         // Initial header and footer
         var header = FakeHeaderViewModel()
@@ -68,7 +68,7 @@ final class TestCollectionViewDriverReconfigure: UnitTestCase, @unchecked Sendab
         let section = SectionViewModel(id: "id", cells: cells, header: header, footer: footer)
         let model = CollectionViewModel(id: "id", sections: [section])
 
-        driver.update(viewModel: model)
+        await driver.update(viewModel: model)
         self.simulateAppearance(viewController: viewController)
         self.waitForExpectations()
 
@@ -80,7 +80,7 @@ final class TestCollectionViewDriverReconfigure: UnitTestCase, @unchecked Sendab
         let updatedSection = SectionViewModel(id: "id", cells: cells, header: updatedHeader, footer: updatedFooter)
         let updatedModel = CollectionViewModel(id: "id", sections: [updatedSection])
 
-        driver.update(viewModel: updatedModel)
+        await driver.update(viewModel: updatedModel)
         self.waitForExpectations()
 
         self.keepDriverAlive(driver)

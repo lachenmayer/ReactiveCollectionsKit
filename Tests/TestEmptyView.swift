@@ -28,14 +28,14 @@ final class TestEmptyView: UnitTestCase, @unchecked Sendable {
     }
 
     @MainActor
-    func test_driver_displaysEmptyView() {
+    func test_driver_displaysEmptyView() async {
         let emptyView = FakeEmptyView()
         let provider = EmptyViewProvider {
             emptyView
         }
 
         let viewController = FakeCollectionViewController()
-        let driver = CollectionViewDriver(
+        let driver = await CollectionViewDriver(
             view: viewController.collectionView,
             emptyViewProvider: provider
         )
@@ -48,32 +48,20 @@ final class TestEmptyView: UnitTestCase, @unchecked Sendable {
         XCTAssertTrue(driver.view.subviews.contains(where: { $0 === emptyView }))
 
         // Update to non-empty model
-        let nonEmptyExpectation = self.expectation(name: "non_empty")
         let model = self.fakeCollectionViewModel()
-        driver.update(viewModel: model, animated: true) { _ in
-            nonEmptyExpectation.fulfillAndLog()
-        }
-        self.waitForExpectations()
+        await driver.update(viewModel: model, animated: true)
         XCTAssertTrue(driver.viewModel.isNotEmpty)
         XCTAssertFalse(driver.view.subviews.contains(where: { $0 === emptyView }))
 
         // Update to empty model
-        let animationExpectation = self.expectation(name: "animation")
-        driver.update(viewModel: .empty, animated: true) { _ in
-            animationExpectation.fulfillAndLog()
-        }
-        self.waitForExpectations()
+        await driver.update(viewModel: .empty, animated: true)
         XCTAssertTrue(driver.viewModel.isEmpty)
         XCTAssertTrue(driver.view.subviews.contains(where: { $0 === emptyView }))
 
         // Update to empty model "again"
         // already displaying empty view, should return early
         // also test completion block
-        let completionExpectation = self.expectation(name: "completion")
-        driver.update(viewModel: .empty, animated: false) { _ in
-            completionExpectation.fulfillAndLog()
-        }
-        self.waitForExpectations()
+        await driver.update(viewModel: .empty, animated: false)
         XCTAssertTrue(driver.viewModel.isEmpty)
         let emptyViews = driver.view.subviews.filter { $0 is FakeEmptyView }
         XCTAssertEqual(emptyViews.count, 1)

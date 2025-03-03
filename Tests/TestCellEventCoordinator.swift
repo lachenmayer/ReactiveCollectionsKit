@@ -28,7 +28,7 @@ final class TestCellEventCoordinator: UnitTestCase, @unchecked Sendable {
     }
 
     @MainActor
-    func test_didSelectCell_getsCalled() {
+    func test_didSelectCell_getsCalled() async {
         let cell = FakeCellViewModel()
         let section = SectionViewModel(id: "id", cells: [cell])
         let model = CollectionViewModel(id: "id", sections: [section])
@@ -36,7 +36,7 @@ final class TestCellEventCoordinator: UnitTestCase, @unchecked Sendable {
         let coordinator = FakeCellEventCoordinator()
         coordinator.expectationDidSelect = self.expectation()
 
-        let driver = CollectionViewDriver(
+        let driver = await CollectionViewDriver(
             view: self.collectionView,
             viewModel: model,
             options: .test(),
@@ -54,7 +54,7 @@ final class TestCellEventCoordinator: UnitTestCase, @unchecked Sendable {
     }
 
     @MainActor
-    func test_didDeselectCell_getsCalled() {
+    func test_didDeselectCell_getsCalled() async {
         let cell = FakeCellViewModel()
         let section = SectionViewModel(id: "id", cells: [cell])
         let model = CollectionViewModel(id: "id", sections: [section])
@@ -62,7 +62,7 @@ final class TestCellEventCoordinator: UnitTestCase, @unchecked Sendable {
         let coordinator = FakeCellEventCoordinator()
         coordinator.expectationDidDeselect = self.expectation()
 
-        let driver = CollectionViewDriver(
+        let driver = await CollectionViewDriver(
             view: self.collectionView,
             viewModel: model,
             options: .test(),
