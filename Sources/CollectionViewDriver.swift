@@ -79,11 +79,13 @@ public final class CollectionViewDriver: NSObject {
     /// because this object is typically the view controller that owns the driver.
     /// Thus, the caller is responsible for retaining and keeping alive the `cellEventCoordinator`
     /// for the entire lifetime of the driver.
-    public init(view: UICollectionView,
-                viewModel: CollectionViewModel = .empty,
-                options: CollectionViewDriverOptions = .init(),
-                emptyViewProvider: EmptyViewProvider? = nil,
-                cellEventCoordinator: CellEventCoordinator? = nil) {
+    public init(
+        view: UICollectionView,
+        viewModel: CollectionViewModel = .empty,
+        options: CollectionViewDriverOptions = .init(),
+        emptyViewProvider: EmptyViewProvider? = nil,
+        cellEventCoordinator: CellEventCoordinator? = nil
+    ) {
         self.view = view
         self.viewModel = viewModel
         self.options = options
@@ -155,7 +157,9 @@ public final class CollectionViewDriver: NSObject {
     /// - Warning: If you provide a `viewModel` with an `id` different from the previous one,
     /// this is considered a *replacement*. By default, the driver will animate the diff between the view models.
     /// You can customize this behavior via the ``options`` for the driver.
-    public func update(viewModel new: CollectionViewModel, animated: Bool = true, completion: DidUpdate? = nil) {
+    public func update(
+        viewModel new: CollectionViewModel, animated: Bool = true, completion: DidUpdate? = nil
+    ) {
         self._updateViewModel(
             from: self.viewModel,
             to: new,
@@ -176,10 +180,15 @@ public final class CollectionViewDriver: NSObject {
     /// - Warning: If you provide a `viewModel` with an `id` different from the previous one,
     /// this is considered a *replacement*. By default, the driver will animate the diff between the view models.
     /// You can customize this behavior via the ``options`` for the driver.
-    public func update(viewModel new: CollectionViewModel, animated: Bool = true) async {
+    public func update(viewModel new: CollectionViewModel, animated: Bool = true) async
+    {
         await withCheckedContinuation { continuation in
-            self.update(viewModel: new, animated: animated)
-            continuation.resume()
+            Task.detached {
+                await self.update(viewModel: new, animated: animated) { _ in
+                    continuation.resume()
+                }
+            }
+
         }
     }
 
@@ -266,7 +275,7 @@ public final class CollectionViewDriver: NSObject {
                 emptyView.topAnchor.constraint(equalTo: self.view.superview!.topAnchor),
                 emptyView.bottomAnchor.constraint(equalTo: self.view.superview!.bottomAnchor),
                 emptyView.leadingAnchor.constraint(equalTo: self.view.superview!.leadingAnchor),
-                emptyView.trailingAnchor.constraint(equalTo: self.view.superview!.trailingAnchor)
+                emptyView.trailingAnchor.constraint(equalTo: self.view.superview!.trailingAnchor),
             ])
             self._currentEmptyView = emptyView
             self._animateEmptyView(isHidden: false, animated: animated, completion: completion)
@@ -306,7 +315,8 @@ public final class CollectionViewDriver: NSObject {
         identifier: UniqueIdentifier
     ) -> UICollectionViewCell {
         let cell = self.viewModel.cellViewModel(for: identifier)
-        precondition(cell != nil, "Inconsistent state. Cell with identifier \(identifier) does not exist.")
+        precondition(
+            cell != nil, "Inconsistent state. Cell with identifier \(identifier) does not exist.")
         return cell!.dequeueAndConfigureCellFor(collectionView: collectionView, at: indexPath)
     }
 
@@ -315,8 +325,10 @@ public final class CollectionViewDriver: NSObject {
         elementKind: String,
         indexPath: IndexPath
     ) -> UICollectionReusableView? {
-        let supplementaryView = self.viewModel.supplementaryViewModel(ofKind: elementKind, at: indexPath)
-        return supplementaryView?.dequeueAndConfigureViewFor(collectionView: collectionView, at: indexPath)
+        let supplementaryView = self.viewModel.supplementaryViewModel(
+            ofKind: elementKind, at: indexPath)
+        return supplementaryView?.dequeueAndConfigureViewFor(
+            collectionView: collectionView, at: indexPath)
     }
 }
 
@@ -326,88 +338,114 @@ extension CollectionViewDriver: UICollectionViewDelegate {
     // MARK: Managing the selected cells
 
     /// :nodoc:
-    public func collectionView(_ collectionView: UICollectionView,
-                               shouldSelectItemAt indexPath: IndexPath) -> Bool {
+    public func collectionView(
+        _ collectionView: UICollectionView,
+        shouldSelectItemAt indexPath: IndexPath
+    ) -> Bool {
         self.viewModel.cellViewModel(at: indexPath).shouldSelect
     }
 
     /// :nodoc:
-    public func collectionView(_ collectionView: UICollectionView,
-                               didSelectItemAt indexPath: IndexPath) {
+    public func collectionView(
+        _ collectionView: UICollectionView,
+        didSelectItemAt indexPath: IndexPath
+    ) {
         self.viewModel.cellViewModel(at: indexPath).didSelect(with: self._cellEventCoordinator)
     }
 
     /// :nodoc:
-    public func collectionView(_ collectionView: UICollectionView,
-                               shouldDeselectItemAt indexPath: IndexPath) -> Bool {
+    public func collectionView(
+        _ collectionView: UICollectionView,
+        shouldDeselectItemAt indexPath: IndexPath
+    ) -> Bool {
         self.viewModel.cellViewModel(at: indexPath).shouldDeselect
     }
 
     /// :nodoc:
-    public func collectionView(_ collectionView: UICollectionView,
-                               didDeselectItemAt indexPath: IndexPath) {
+    public func collectionView(
+        _ collectionView: UICollectionView,
+        didDeselectItemAt indexPath: IndexPath
+    ) {
         self.viewModel.cellViewModel(at: indexPath).didDeselect(with: self._cellEventCoordinator)
     }
 
     // MARK: Managing cell highlighting
 
     /// :nodoc:
-    public func collectionView(_ collectionView: UICollectionView,
-                               shouldHighlightItemAt indexPath: IndexPath) -> Bool {
+    public func collectionView(
+        _ collectionView: UICollectionView,
+        shouldHighlightItemAt indexPath: IndexPath
+    ) -> Bool {
         self.viewModel.cellViewModel(at: indexPath).shouldHighlight
     }
 
     /// :nodoc:
-    public func collectionView(_ collectionView: UICollectionView,
-                               didHighlightItemAt indexPath: IndexPath) {
+    public func collectionView(
+        _ collectionView: UICollectionView,
+        didHighlightItemAt indexPath: IndexPath
+    ) {
         self.viewModel.cellViewModel(at: indexPath).didHighlight()
     }
 
     /// :nodoc:
-    public func collectionView(_ collectionView: UICollectionView,
-                               didUnhighlightItemAt indexPath: IndexPath) {
+    public func collectionView(
+        _ collectionView: UICollectionView,
+        didUnhighlightItemAt indexPath: IndexPath
+    ) {
         self.viewModel.cellViewModel(at: indexPath).didUnhighlight()
     }
 
     // MARK: Managing context menus
 
     /// :nodoc:
-    public func collectionView(_ collectionView: UICollectionView,
-                               contextMenuConfigurationForItemAt indexPath: IndexPath,
-                               point: CGPoint) -> UIContextMenuConfiguration? {
+    public func collectionView(
+        _ collectionView: UICollectionView,
+        contextMenuConfigurationForItemAt indexPath: IndexPath,
+        point: CGPoint
+    ) -> UIContextMenuConfiguration? {
         self.viewModel.cellViewModel(at: indexPath).contextMenuConfiguration
     }
 
     // MARK: Tracking the addition and removal of views
 
     /// :nodoc:
-    public func collectionView(_ collectionView: UICollectionView,
-                               willDisplay cell: UICollectionViewCell,
-                               forItemAt indexPath: IndexPath) {
+    public func collectionView(
+        _ collectionView: UICollectionView,
+        willDisplay cell: UICollectionViewCell,
+        forItemAt indexPath: IndexPath
+    ) {
         self.viewModel._safeCellViewModel(at: indexPath)?.willDisplay()
     }
 
     /// :nodoc:
-    public func collectionView(_ collectionView: UICollectionView,
-                               willDisplaySupplementaryView view: UICollectionReusableView,
-                               forElementKind elementKind: String,
-                               at indexPath: IndexPath) {
-        self.viewModel._safeSupplementaryViewModel(ofKind: elementKind, at: indexPath)?.willDisplay()
+    public func collectionView(
+        _ collectionView: UICollectionView,
+        willDisplaySupplementaryView view: UICollectionReusableView,
+        forElementKind elementKind: String,
+        at indexPath: IndexPath
+    ) {
+        self.viewModel._safeSupplementaryViewModel(ofKind: elementKind, at: indexPath)?
+            .willDisplay()
     }
 
     /// :nodoc:
-    public func collectionView(_ collectionView: UICollectionView,
-                               didEndDisplaying cell: UICollectionViewCell,
-                               forItemAt indexPath: IndexPath) {
+    public func collectionView(
+        _ collectionView: UICollectionView,
+        didEndDisplaying cell: UICollectionViewCell,
+        forItemAt indexPath: IndexPath
+    ) {
         self.viewModel._safeCellViewModel(at: indexPath)?.didEndDisplaying()
     }
 
     /// :nodoc:
-    public func collectionView(_ collectionView: UICollectionView,
-                               didEndDisplayingSupplementaryView view: UICollectionReusableView,
-                               forElementOfKind elementKind: String,
-                               at indexPath: IndexPath) {
-        self.viewModel._safeSupplementaryViewModel(ofKind: elementKind, at: indexPath)?.didEndDisplaying()
+    public func collectionView(
+        _ collectionView: UICollectionView,
+        didEndDisplayingSupplementaryView view: UICollectionReusableView,
+        forElementOfKind elementKind: String,
+        at indexPath: IndexPath
+    ) {
+        self.viewModel._safeSupplementaryViewModel(ofKind: elementKind, at: indexPath)?
+            .didEndDisplaying()
     }
 }
 
@@ -440,8 +478,10 @@ extension CollectionViewDriver: UIScrollViewDelegate {
     }
 
     /// :nodoc:
-    public func scrollViewDidEndDragging(_ scrollView: UIScrollView,
-                                         willDecelerate decelerate: Bool) {
+    public func scrollViewDidEndDragging(
+        _ scrollView: UIScrollView,
+        willDecelerate decelerate: Bool
+    ) {
         self.scrollViewDelegate?.scrollViewDidEndDragging?(scrollView, willDecelerate: decelerate)
     }
 
@@ -478,9 +518,11 @@ extension CollectionViewDriver: UIScrollViewDelegate {
     }
 
     /// :nodoc:
-    public func scrollViewDidEndZooming(_ scrollView: UIScrollView,
-                                        with view: UIView?,
-                                        atScale scale: CGFloat) {
+    public func scrollViewDidEndZooming(
+        _ scrollView: UIScrollView,
+        with view: UIView?,
+        atScale scale: CGFloat
+    ) {
         self.scrollViewDelegate?.scrollViewDidEndZooming?(scrollView, with: view, atScale: scale)
     }
 
@@ -525,8 +567,8 @@ extension CollectionViewDriver: UICollectionViewDelegateFlowLayout {
             layout: collectionViewLayout,
             sizeForItemAt: indexPath
         )
-        ?? self.flowLayout?.itemSize
-        ?? .zero
+            ?? self.flowLayout?.itemSize
+            ?? .zero
     }
 
     // MARK: Getting the section spacing
@@ -542,8 +584,8 @@ extension CollectionViewDriver: UICollectionViewDelegateFlowLayout {
             layout: collectionViewLayout,
             insetForSectionAt: section
         )
-        ?? self.flowLayout?.sectionInset
-        ?? .zero
+            ?? self.flowLayout?.sectionInset
+            ?? .zero
     }
 
     /// :nodoc:
@@ -557,8 +599,8 @@ extension CollectionViewDriver: UICollectionViewDelegateFlowLayout {
             layout: collectionViewLayout,
             minimumLineSpacingForSectionAt: section
         )
-        ?? self.flowLayout?.minimumLineSpacing
-        ?? .zero
+            ?? self.flowLayout?.minimumLineSpacing
+            ?? .zero
     }
 
     /// :nodoc:
@@ -572,8 +614,8 @@ extension CollectionViewDriver: UICollectionViewDelegateFlowLayout {
             layout: collectionViewLayout,
             minimumInteritemSpacingForSectionAt: section
         )
-        ?? self.flowLayout?.minimumInteritemSpacing
-        ?? .zero
+            ?? self.flowLayout?.minimumInteritemSpacing
+            ?? .zero
     }
 
     // MARK: Getting the header and footer sizes
@@ -589,8 +631,8 @@ extension CollectionViewDriver: UICollectionViewDelegateFlowLayout {
             layout: collectionViewLayout,
             referenceSizeForHeaderInSection: section
         )
-        ?? self.flowLayout?.headerReferenceSize
-        ?? .zero
+            ?? self.flowLayout?.headerReferenceSize
+            ?? .zero
     }
 
     /// :nodoc:
@@ -604,8 +646,8 @@ extension CollectionViewDriver: UICollectionViewDelegateFlowLayout {
             layout: collectionViewLayout,
             referenceSizeForFooterInSection: section
         )
-        ?? self.flowLayout?.footerReferenceSize
-        ?? .zero
+            ?? self.flowLayout?.footerReferenceSize
+            ?? .zero
     }
 }
 
