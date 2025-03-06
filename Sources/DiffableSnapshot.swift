@@ -14,7 +14,7 @@
 import Foundation
 import UIKit
 
-typealias DiffableSnapshot = NSDiffableDataSourceSnapshot<AnyHashable, AnyHashable>
+typealias DiffableSnapshot = NSDiffableDataSourceSnapshot<UniqueIdentifier, UniqueIdentifier>
 
 extension DiffableSnapshot {
     init(viewModel: CollectionViewModel) {

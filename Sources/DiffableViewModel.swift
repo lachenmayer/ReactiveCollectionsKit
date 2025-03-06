@@ -14,7 +14,7 @@
 import Foundation
 
 /// The unique identifier type for a `DiffableViewModel`.
-public typealias UniqueIdentifier = AnyHashable
+public typealias UniqueIdentifier = String
 
 /// Describes a view model that is uniquely identifiable and diffable.
 public protocol DiffableViewModel: Identifiable, Hashable, Sendable {

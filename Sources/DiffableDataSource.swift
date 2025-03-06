@@ -14,11 +14,9 @@
 import Foundation
 import UIKit
 
-extension AnyHashable: @retroactive @unchecked Sendable { }
-
 @MainActor
-final class DiffableDataSource: UICollectionViewDiffableDataSource<AnyHashable, AnyHashable> {
-    typealias Snapshot = NSDiffableDataSourceSnapshot<AnyHashable, AnyHashable>
+final class DiffableDataSource: UICollectionViewDiffableDataSource<UniqueIdentifier, UniqueIdentifier> {
+    typealias Snapshot = NSDiffableDataSourceSnapshot<UniqueIdentifier, UniqueIdentifier>
 
     typealias SnapshotCompletion = @Sendable @MainActor () -> Void
 
